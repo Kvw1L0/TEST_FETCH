@@ -15,22 +15,28 @@
     const URL = "https://script.google.com/macros/s/AKfycbzWYVJC4k-X2Ag-lKnfDZbtYcZ439JzATAOND8OeKfenZ8AHknImYPZGaodnqQ8wpJX/exec"; // <-- pega aquí tu URL /exec
 
     document.getElementById("send").onclick = () => {
-      document.getElementById("output").textContent = "Enviando...";
+  document.getElementById("output").textContent = "Enviando...";
 
-      fetch("https://script.google.com/macros/s/AKfycbzWYVJC4k-X2Ag-lKnfDZbtYcZ439JzATAOND8OeKfenZ8AHknImYPZGaodnqQ8wpJX/exec",{
-      method: "POST",
-      body: JSON.stringify({
+  fetch(URL, { // Usamos la constante URL
+    method: "POST",
+    body: JSON.stringify({
       name: "test",
       time: "12.3"
     })
   })
-      .then(r => r.json())
-      .then(data => {
-      console.log("Respuesta:", data);
-  })
-  .catch(err => {
-    console.error("Error:", err);
-  });
+    .then(async (res) => { // Primera promesa: recibir la respuesta
+      const data = await res.json();
+      console.log("Respuesta (Consola):", data); // Opcional: registrar en consola
+      
+      // Actualizar la interfaz de usuario
+      document.getElementById("output").textContent =
+        "STATUS: " + res.status + "\n\n" + JSON.stringify(data, null, 2);
+    })
+    .catch((err) => { // Manejo de cualquier error de red o de proceso
+      console.error("Error:", err); // Opcional: registrar en consola
+      document.getElementById("output").textContent = "ERROR:\n" + err;
+    });
+};
       .then(async res => {
         const data = await res.json();
         document.getElementById("output").textContent =
