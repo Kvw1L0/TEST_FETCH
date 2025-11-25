@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tester Apps Script</title>
+</head>
+<body>
+  <h1>Tester para Apps Script</h1>
+
+  <button id="send">Enviar Test</button>
+
+  <pre id="output"></pre>
+
+  <script>
+    const URL = "https://script.google.com/macros/s/AKfycbwGeCYeRQNv2LLyDAxqKWwmDzQwwVklOnC50gMq-RqRopuyxNhZsWZfGl1D3txtvrJA/exec"; // <-- pega aquí tu URL /exec
+
+    document.getElementById("send").onclick = () => {
+      document.getElementById("output").textContent = "Enviando...";
+
+      fetch(URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: "TEST_USER",
+          time: "12.3"
+        })
+      })
+      .then(async res => {
+        const data = await res.json();
+        document.getElementById("output").textContent =
+          "STATUS: " + res.status + "\n\n" + JSON.stringify(data, null, 2);
+      })
+      .catch(err => {
+        document.getElementById("output").textContent = "ERROR:\n" + err;
+      });
+    };
+  </script>
+</body>
+</html>
