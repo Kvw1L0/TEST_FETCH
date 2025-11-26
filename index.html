@@ -17,11 +17,11 @@
     document.getElementById("send").onclick = () => {
   document.getElementById("output").textContent = "Enviando...";
 
-  fetch(URL, { // Usamos la constante URL
+  fetch(URL, {
     method: "POST",
     body: JSON.stringify({
       name: "test",
-      time: "12.3"
+      time: "12"
     })
   })
     .then(async (res) => { // Primera promesa: recibir la respuesta
