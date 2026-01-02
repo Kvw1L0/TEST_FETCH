@@ -2,152 +2,358 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Exclusivo - Tu Marca</title>
+    <title>Escape Room Interactivo - Edición Voz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <style>
-        /* --- RESET Y ESTILOS BASE --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* ================= ESTILOS GENERALES Y VIDEO ================= */
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; overflow: hidden;
+            font-family: 'Orbitron', sans-serif;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f0f0f; /* Fondo oscuro tipo Netflix/YouTube */
-            color: #ffffff;
-            line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        /* Capa de Video (Al fondo) */
+        #video-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
         }
-
-        /* --- HEADER --- */
-        header {
-            padding: 20px;
-            text-align: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        /* --- CONTENEDOR PRINCIPAL --- */
-        .main-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .headline {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-
-        .sub-headline {
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 1.2rem;
-            color: #cccccc;
-            max-width: 600px;
-        }
-
-        /* --- VIDEO RESPONSIVE --- */
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            background: #000;
-            /* Relación de aspecto 16:9 */
-            aspect-ratio: 16 / 9; 
-        }
-
         video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; transition: opacity 0.5s;
+        }
+        .visible { opacity: 1; z-index: 2; }
+        .hidden { opacity: 0; z-index: 1; }
+
+        /* ================= INTERFAZ DE VOTACIÓN (OVERLAY) ================= */
+        /* Esta capa está oculta por defecto y aparece sobre el video */
+        #voting-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10; display: none; /* Se oculta al inicio */
+            background: rgba(0, 0, 0, 0.4); /* Fondo semitransparente para oscurecer el video un poco */
+            flex-direction: column; justify-content: flex-end; align-items: center;
         }
 
-        /* --- SECCIÓN CTA (Llamada a la acción) --- */
-        .cta-section {
-            margin-top: 40px;
-            text-align: center;
+        :root {
+            --neon-blue: #00f3ff; --neon-green: #39ff14;
+            --neon-pink: #ff00ff; --neon-red: #ff3131;
         }
 
-        .btn-primary {
-            background-color: #e50914; /* Rojo vibrante */
-            color: white;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: transform 0.2s, background-color 0.2s;
-            display: inline-block;
+        h2.overlay-title {
+            position: absolute; top: 10%; width: 100%; text-align: center;
+            font-size: 3rem; color: #fff; text-shadow: 0 0 20px var(--neon-blue);
+            margin: 0; z-index: 20;
         }
 
-        .btn-primary:hover {
-            background-color: #f40612;
-            transform: scale(1.05);
+        #winner-text {
+            position: absolute; top: 20%; width: 100%; text-align: center;
+            font-size: 4rem; font-weight: 900; color: #fff;
+            text-shadow: 0 0 20px var(--neon-pink); z-index: 30;
         }
 
-        /* --- FOOTER --- */
-        footer {
-            text-align: center;
-            padding: 20px;
-            font-size: 0.8rem;
-            color: #555;
-            margin-top: auto;
+        .stage {
+            display: flex; width: 80%; height: 60vh; gap: 50px;
+            justify-content: center; align-items: flex-end; margin-bottom: 50px;
         }
 
-        /* --- MEDIA QUERIES (Móvil) --- */
-        @media (max-width: 768px) {
-            .headline { font-size: 1.8rem; }
-            .btn-primary { width: 100%; display: block; }
+        .team-column {
+            flex: 1; height: 100%;
+            background: rgba(20, 20, 30, 0.6); /* Semi-transparente */
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 15px;
+            position: relative; display: flex; flex-direction: column; justify-content: flex-end;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
+
+        .active-turn { border-color: var(--neon-blue); box-shadow: 0 0 50px var(--neon-blue); }
+        .winner-col { border-color: var(--neon-pink); box-shadow: 0 0 80px var(--neon-pink); transform: scale(1.05); transition: 0.3s; }
+
+        .score-display {
+            position: absolute; top: -80px; width: 100%; text-align: center;
+            font-size: 5rem; font-weight: 900; color: #fff;
+            text-shadow: 2px 2px 10px #000;
+        }
+
+        .bar { width: 100%; height: 0%; transition: height 0.1s linear; }
+        #bar-a { background: linear-gradient(to top, #003b00, var(--neon-green)); border-top: 4px solid var(--neon-green); }
+        #bar-b { background: linear-gradient(to top, #4a0000, var(--neon-red)); border-top: 4px solid var(--neon-red); }
+
+        .label {
+            position: absolute; bottom: 20px; width: 100%; text-align: center;
+            font-size: 2rem; font-weight: bold; color: white; text-shadow: 0 0 10px black;
+        }
+
+        #timer-overlay {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 15rem; font-weight: 900; color: white;
+            text-shadow: 0 0 50px var(--neon-blue); display: none; z-index: 100;
+        }
+
+        /* ================= CONTROL PANEL DEL OPERADOR (GAME MASTER) ================= */
+        /* Esto lo ve el operador, idealmente ponlo pequeño o en otra pantalla si puedes, 
+           pero aquí lo pondremos flotando discreto */
+        #gm-controls {
+            position: fixed; bottom: 10px; right: 10px; z-index: 999;
+            background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; border: 1px solid #555;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        #gm-controls h4 { margin: 0 0 10px 0; color: #aaa; font-size: 12px; text-transform: uppercase; }
+        
+        .control-row { display: flex; gap: 10px; }
+        
+        button {
+            padding: 8px 12px; cursor: pointer; font-family: 'Orbitron'; font-weight: bold;
+            border: 1px solid #fff; background: #333; color: #fff; border-radius: 4px;
+        }
+        button:hover { background: #555; }
+        .btn-green { border-color: var(--neon-green); color: var(--neon-green); }
+        .btn-red { border-color: var(--neon-red); color: var(--neon-red); }
+        
+        input[type=range] { width: 100px; }
     </style>
 </head>
 <body>
 
-    <header>
-       
-    </header>
+    <div id="video-layer">
+        <video id="video1" class="visible" playsinline></video>
+        <video id="video2" class="hidden" playsinline></video>
+    </div>
 
-    <main class="main-container">
-        
+    <div id="voting-overlay">
+        <h2 class="overlay-title">¡DECISIÓN DEL PÚBLICO!</h2>
+        <div id="winner-text"></div>
 
-        <div class="video-wrapper">
-            <video controls autoplay muted loop poster="poster-imagen.jpg">
-                <source src="video.mp4" type="video/mp4">
-                Tu navegador no soporta la etiqueta de video.
-            </video>
+        <div id="timer-overlay">5</div>
+
+        <div class="stage">
+            <div class="team-column" id="col-a">
+                <div id="score-a" class="score-display">0</div> 
+                <div class="label">OPCIÓN A</div>
+                <div id="bar-a" class="bar"></div>
+            </div>
+            
+            <div class="team-column" id="col-b">
+                <div id="score-b" class="score-display">0</div>
+                <div class="label">OPCIÓN B</div>
+                <div id="bar-b" class="bar"></div>
+            </div>
         </div>
+    </div>
 
-        <div class="cta-section">
-           
+    <div id="gm-controls">
+        <h4>Panel de Control</h4>
+        <div class="control-row">
+            <button onclick="startScene()">▶ Iniciar Escena (Loop)</button>
+            <button onclick="unlockAudio()">🔊 Activar Mic</button>
         </div>
-    </main>
+        <hr style="width:100%; border-color:#444;">
+        <div class="control-row">
+            <button onclick="startCountdown('A')" class="btn-green" id="btn-a">1. Gritos A</button>
+            <button onclick="startCountdown('B')" class="btn-red" id="btn-b" disabled>2. Gritos B</button>
+        </div>
+        <div class="control-row">
+            <label style="color:white; font-size:10px;">Sensibilidad:</label>
+            <input type="range" min="0.5" max="5.0" step="0.1" value="1.5" oninput="updateSensitivity(this.value)">
+        </div>
+        <div class="control-row">
+            <button onclick="forceReset()">Reiniciar Votación</button>
+        </div>
+    </div>
 
-    <footer>
-     
-    </footer>
+    <script>
+        // ================= CONFIGURACIÓN DE VIDEOS =================
+        const CLIPS = {
+            loop: "https://media.istockphoto.com/id/1339303493/video/cyber-hacker-typing-on-keyboard.mp4?s=mp4-640x640-is&k=20&c=wB0OytqK4d3V9QW4d6335_zWq_OqH9G9x4aW0Zg6p2w=", 
+            outcomeA: "https://media.istockphoto.com/id/1182603837/video/security-code-on-a-monitor.mp4?s=mp4-640x640-is&k=20&c=TfRgvBf-l1t8CuvUo9yFjoOX7N4K4tO_V6QZg8o6_uY=", 
+            outcomeB: "https://media.istockphoto.com/id/1366538640/video/system-failure-glitch-text-on-black-background-loop.mp4?s=mp4-640x640-is&k=20&c=TjZk4Xv-a9a7o9_i8Pz_Cj_E_u_q_u_g_0_0_0_0=", 
+        };
 
+        // ================= MOTOR DE VIDEO (Double Buffering) =================
+        let activePlayer = document.getElementById('video1');
+        let hiddenPlayer = document.getElementById('video2');
+
+        function smoothTransition(videoUrl, loop = false) {
+            hiddenPlayer.src = videoUrl;
+            hiddenPlayer.loop = loop;
+            hiddenPlayer.oncanplay = () => {
+                hiddenPlayer.play();
+                hiddenPlayer.classList.remove('hidden'); hiddenPlayer.classList.add('visible');
+                activePlayer.classList.remove('visible'); activePlayer.classList.add('hidden');
+                setTimeout(() => { 
+                    activePlayer.pause(); 
+                    let temp = activePlayer; activePlayer = hiddenPlayer; hiddenPlayer = temp;
+                    activePlayer.oncanplay = null; 
+                }, 100);
+            };
+        }
+
+        function startScene() {
+            smoothTransition(CLIPS.loop, true);
+            // Mostramos el overlay de votación
+            document.getElementById('voting-overlay').style.display = 'flex';
+            forceReset(); // Limpiamos barras anteriores
+        }
+
+        // ================= LÓGICA DE DECIBELIOS (Tu código adaptado) =================
+        let audioContext, analyser, microphone, javascriptNode;
+        let isListening = false; let currentTeam = null;
+        let scoreA = 0; let scoreB = 0;
+        let SENSITIVITY = 1.5;
+        const RECORD_TIME = 4; // Segundos que dura la grabación de gritos
+
+        async function unlockAudio() {
+            try {
+                if (!audioContext) {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    microphone = audioContext.createMediaStreamSource(stream);
+                    javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+                    analyser.smoothingTimeConstant = 0.6; analyser.fftSize = 1024;
+                    microphone.connect(analyser); analyser.connect(javascriptNode); javascriptNode.connect(audioContext.destination);
+                    javascriptNode.onaudioprocess = processAudio;
+                } else if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                alert("Micrófono Activado. Listo para jugar.");
+            } catch (e) { console.error(e); alert("Error de Micrófono"); }
+        }
+
+        function updateSensitivity(val) { SENSITIVITY = parseFloat(val); }
+
+        function processAudio() {
+            if (!isListening || !currentTeam) return;
+            const array = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(array);
+            let values = 0; for (let i = 0; i < array.length; i++) values += array[i];
+            let volume = Math.round((values / array.length) * SENSITIVITY); 
+            if (volume > 100) volume = 100;
+            
+            // Efecto Shake solo en el overlay, no en toda la web
+            const overlay = document.getElementById('voting-overlay');
+            if (volume > 80) {
+                overlay.style.transform = `translate(${Math.random()*4-2}px, ${Math.random()*4-2}px)`;
+            } else {
+                overlay.style.transform = 'none';
+            }
+
+            updateGame(volume);
+        }
+
+        function updateGame(volume) {
+            const teamSlug = currentTeam.toLowerCase();
+            const bar = document.getElementById(`bar-${teamSlug}`);
+            const scoreDisplay = document.getElementById(`score-${teamSlug}`);
+            
+            bar.style.height = volume + "%";
+            scoreDisplay.innerText = volume;
+
+            if (currentTeam === 'A' && volume > scoreA) scoreA = volume;
+            if (currentTeam === 'B' && volume > scoreB) scoreB = volume;
+        }
+
+        function startCountdown(team) {
+            if (!audioContext) { alert("¡Dale a 'Activar Mic' primero!"); return; }
+            
+            // UI Update
+            document.getElementById('btn-a').disabled = true; document.getElementById('btn-b').disabled = true;
+            document.querySelectorAll('.team-column').forEach(c => c.classList.remove('active-turn'));
+            document.getElementById(`col-${team.toLowerCase()}`).classList.add('active-turn');
+            
+            const timerDisplay = document.getElementById('timer-overlay');
+            timerDisplay.style.display = 'block';
+            let countdown = 3;
+            timerDisplay.innerText = countdown;
+            
+            let prepInterval = setInterval(() => {
+                countdown--;
+                if(countdown > 0) { 
+                    timerDisplay.innerText = countdown; 
+                } else { 
+                    clearInterval(prepInterval); 
+                    timerDisplay.innerText = "¡GRITEN!"; 
+                    startRecording(team); 
+                }
+            }, 800);
+        }
+
+        function startRecording(team) {
+            isListening = true; currentTeam = team;
+            let timeLeft = RECORD_TIME;
+            
+            let gameInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft < 0) { clearInterval(gameInterval); stopRecording(team); }
+            }, 1000);
+        }
+
+        function stopRecording(team) {
+            isListening = false;
+            document.getElementById('timer-overlay').style.display = 'none';
+            const finalScore = (team === 'A') ? scoreA : scoreB;
+            
+            // Fijar visuales al máximo alcanzado
+            document.getElementById(`bar-${team.toLowerCase()}`).style.height = finalScore + "%";
+            document.getElementById(`score-${team.toLowerCase()}`).innerText = finalScore;
+
+            if (team === 'A') {
+                document.getElementById('btn-b').disabled = false; // Habilitar turno B
+                document.getElementById(`col-a`).classList.remove('active-turn');
+            } else {
+                document.getElementById(`col-b`).classList.remove('active-turn');
+                declareWinner();
+            }
+            currentTeam = null;
+        }
+
+        function declareWinner() {
+            const winnerText = document.getElementById('winner-text');
+            let winner = '';
+
+            if (scoreA >= scoreB) { // En caso de empate gana A por defecto o añade lógica de empate
+                winnerText.innerText = "¡GANA OPCIÓN A!";
+                document.getElementById('col-a').classList.add('winner-col');
+                launchConfetti('#39ff14');
+                winner = 'A';
+            } else {
+                winnerText.innerText = "¡GANA OPCIÓN B!";
+                document.getElementById('col-b').classList.add('winner-col');
+                launchConfetti('#ff3131');
+                winner = 'B';
+            }
+
+            // ================= INTEGRACIÓN FINAL =================
+            // Esperamos 3 segundos de celebración y lanzamos el video
+            setTimeout(() => {
+                // 1. Ocultar el overlay de votación
+                document.getElementById('voting-overlay').style.display = 'none';
+                
+                // 2. Ejecutar la transición de video
+                if (winner === 'A') smoothTransition(CLIPS.outcomeA, false);
+                else smoothTransition(CLIPS.outcomeB, false);
+                
+            }, 3000);
+        }
+
+        function forceReset() {
+            scoreA = 0; scoreB = 0;
+            document.getElementById('bar-a').style.height = "0%";
+            document.getElementById('bar-b').style.height = "0%";
+            document.getElementById('score-a').innerText = "0";
+            document.getElementById('score-b').innerText = "0";
+            document.getElementById('winner-text').innerText = "";
+            document.getElementById('btn-a').disabled = false;
+            document.getElementById('btn-b').disabled = true;
+            document.querySelectorAll('.team-column').forEach(c => c.classList.remove('active-turn', 'winner-col'));
+        }
+
+        function launchConfetti(colorHex) {
+            var duration = 2000; var end = Date.now() + duration;
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: [colorHex, '#ffffff'] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: [colorHex, '#ffffff'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+    </script>
 </body>
 </html>
